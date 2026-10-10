@@ -55,7 +55,10 @@ export default function App() {
       page = <Dashboard />;
   }
 
-  const showResume = draft && !(section === '/lift' && parts.length <= 1);
+  // The logger fills the Lift tab whenever a workout is in progress (except
+  // on the template editor and workout detail screens).
+  const loggerVisible = section === '/lift' && !['edit', 'workout'].includes(parts[1]);
+  const showResume = draft && !loggerVisible;
 
   return (
     <div className="app">

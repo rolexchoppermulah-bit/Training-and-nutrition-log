@@ -23,7 +23,8 @@ export default function WorkoutLogger({ onFinished }) {
   const [adding, setAdding] = useState(false);
   const [invalid, setInvalid] = useState(null);
 
-  const history = useMemo(() => draftHistory(state), [state]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const history = useMemo(() => draftHistory(state), [state.workouts, draft.editingId]);
   const { bests } = useMemo(() => computePRs(history), [history]);
   const live = useMemo(() => livePRs(history, draft), [history, draft]);
   const knownNames = useMemo(() => {

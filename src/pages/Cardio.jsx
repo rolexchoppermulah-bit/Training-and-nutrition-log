@@ -7,7 +7,7 @@ import { addDays, formatWeekRange, relativeDay, startOfWeek, today, WEEKDAYS } f
 import { CARDIO_TYPES } from '../lib/defaults.js';
 import TopBar from '../components/TopBar.jsx';
 import { Button, Card, Chips, EmptyState, Field, IconButton, NumInput, ProgressBar, fmt, useToast } from '../components/ui.jsx';
-import CardioWeeksChart from '../components/charts/CardioWeeksChart.jsx';
+import { CardioWeeksChart } from '../components/charts/index.jsx';
 
 const QUICK_MINUTES = [20, 30, 45, 60];
 

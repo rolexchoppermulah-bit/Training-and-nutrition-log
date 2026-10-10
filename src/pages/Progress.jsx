@@ -7,8 +7,7 @@ import { MUSCLES } from '../lib/defaults.js';
 import { navigate } from '../lib/router.js';
 import TopBar from '../components/TopBar.jsx';
 import { Card, EmptyState, Field, IconButton, Segmented, fmt } from '../components/ui.jsx';
-import E1rmChart from '../components/charts/E1rmChart.jsx';
-import VolumeChart from '../components/charts/VolumeChart.jsx';
+import { E1rmChart, VolumeChart } from '../components/charts/index.jsx';
 import { signed } from './Weight.jsx';
 
 export default function Progress({ params }) {

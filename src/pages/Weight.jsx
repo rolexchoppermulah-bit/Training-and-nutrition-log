@@ -6,7 +6,7 @@ import { num, sortByDate, weeklyRate, withMovingAverage } from '../lib/calc.js';
 import { relativeDay, today, addDays, formatDate } from '../lib/dates.js';
 import TopBar from '../components/TopBar.jsx';
 import { Button, Card, EmptyState, Field, IconButton, NumInput, fmt, useToast } from '../components/ui.jsx';
-import WeightChart from '../components/charts/WeightChart.jsx';
+import { WeightChart } from '../components/charts/index.jsx';
 
 /** Numbers used on both the dashboard and the weight page. */
 export function useWeightSummary(state) {
