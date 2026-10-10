@@ -294,3 +294,21 @@ export function planForDay(state, date = today()) {
   }
   return { template, rest: !template, doneWorkout, next };
 }
+
+/** Best set (by estimated 1RM) from each session of an exercise, oldest first. */
+export function exerciseSessions(workouts, name) {
+  const key = normName(name);
+  const out = [];
+  for (const w of sortWorkouts(workouts)) {
+    let best = null;
+    for (const ex of w.exercises) {
+      if (normName(ex.name) !== key) continue;
+      for (const s of ex.sets) {
+        const est = e1rm(s.weight, s.reps);
+        if (est > 0 && (!best || est > best.e1rm)) best = { e1rm: est, weight: num(s.weight), reps: num(s.reps) };
+      }
+    }
+    if (best) out.push({ date: w.date, workoutId: w.id, ...best });
+  }
+  return out;
+}

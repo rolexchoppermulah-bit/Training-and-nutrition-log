@@ -30,7 +30,8 @@ export default function Cardio() {
     [state.cardio, weekStart],
   );
   const dayMax = Math.max(60, ...perDay.map((d) => d.minutes));
-  const recent = useMemo(() => sortByDate(state.cardio).reverse().slice(0, 30), [state.cardio]);
+  const recent = useMemo(() => sortByDate(state.cardio).reverse(), [state.cardio]);
+  const [showAll, setShowAll] = useState(false);
 
   const submit = () => {
     const m = num(form.minutes);
@@ -103,7 +104,7 @@ export default function Cardio() {
           </div>
         </Card>
 
-        <Card title="Last 8 weeks">
+        <Card title="Zone 2 minutes · last 8 weeks">
           <CardioWeeksChart cardio={state.cardio} target={target} />
         </Card>
 
@@ -114,7 +115,7 @@ export default function Cardio() {
             </EmptyState>
           ) : (
             <div className="list">
-              {recent.map((c) => (
+              {recent.slice(0, showAll ? undefined : 10).map((c) => (
                 <div key={c.id} className="list-item">
                   <div className="grow">
                     <div className="list-title">
@@ -136,6 +137,11 @@ export default function Cardio() {
                   </IconButton>
                 </div>
               ))}
+              {recent.length > 10 && (
+                <button type="button" className="link-btn" onClick={() => setShowAll((v) => !v)}>
+                  {showAll ? 'Show fewer' : `Show all ${recent.length}`}
+                </button>
+              )}
             </div>
           )}
         </Card>

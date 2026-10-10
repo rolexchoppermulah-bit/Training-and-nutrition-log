@@ -13,6 +13,7 @@ import {
   dayTotals,
   planForDay,
   workoutsBefore,
+  exerciseSessions,
 } from './calc.js';
 import { addDays, startOfWeek, weekdayIndex, daysBetween } from './dates.js';
 import { createDefaultState } from './defaults.js';
@@ -103,6 +104,15 @@ describe('PRs', () => {
     const live = livePRs(history, draft);
     expect(live.get('0:0')).toEqual({ e1rm: true, weight: true });
     expect(live.has('0:1')).toBe(false);
+  });
+
+  it('exerciseSessions keeps the best set per session', () => {
+    const s = exerciseSessions(history, 'Bench Press');
+    expect(s.map((x) => [x.date, x.weight, x.reps])).toEqual([
+      ['2026-01-01', 135, 8],
+      ['2026-01-04', 135, 9],
+      ['2026-01-08', 145, 3],
+    ]);
   });
 
   it('lastPerformance returns the most recent session', () => {

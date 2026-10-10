@@ -72,6 +72,8 @@ export default function Weight() {
   const [date, setDate] = useState(today());
   const [value, setValue] = useState(() => String(last?.weight ?? state.settings.startWeight ?? ''));
   const existing = state.weights.find((w) => w.date === date);
+  const [showAll, setShowAll] = useState(false);
+  const history = [...summary.ma].reverse();
 
   const submit = () => {
     if (!(num(value) > 0)) {
@@ -125,7 +127,7 @@ export default function Weight() {
             </EmptyState>
           ) : (
             <div className="list">
-              {[...summary.ma].reverse().slice(0, 60).map((w) => (
+              {history.slice(0, showAll ? undefined : 10).map((w) => (
                 <div key={w.id || w.date} className="list-item">
                   <div className="grow">
                     <div className="list-title tabular">{fmt(w.weight, 1)} lb</div>
@@ -144,6 +146,11 @@ export default function Weight() {
                   </IconButton>
                 </div>
               ))}
+              {history.length > 10 && (
+                <button type="button" className="link-btn" onClick={() => setShowAll((v) => !v)}>
+                  {showAll ? 'Show fewer' : `Show all ${history.length}`}
+                </button>
+              )}
             </div>
           )}
         </Card>
