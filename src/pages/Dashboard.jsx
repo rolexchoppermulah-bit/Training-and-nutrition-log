@@ -6,13 +6,13 @@ import { cardioMinutesInWeek, computePRs, dayTotals, num, planForDay, workoutSta
 import { daysBetween, formatClock, formatDate, parseISODate, startOfWeek, today, toISODate } from '../lib/dates.js';
 import { navigate } from '../lib/router.js';
 import TopBar from '../components/TopBar.jsx';
-import { Button, Card, NumInput, ProgressBar, fmt, useNow, useToast } from '../components/ui.jsx';
+import { Button, Card, NumInput, ProgressBar, fmt, useNow, useToast, useToday } from '../components/ui.jsx';
 import { MacroBars, quickAddFood, useSortedFoods } from './Food.jsx';
 import { useWeightSummary, signed } from './Weight.jsx';
 
 export default function Dashboard() {
   const state = useStore();
-  const d = today();
+  const d = useToday();
   const title = parseISODate(d).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
   return (
     <>

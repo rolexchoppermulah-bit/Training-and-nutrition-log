@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Trash2, Pencil, Utensils, Star } from 'lucide-react';
 import { useStore } from '../lib/store.js';
 import { addFoodEntry, removeFoodEntry, restoreFoodEntry, saveFood, deleteFood, updateFoodEntry } from '../lib/actions.js';
 import { dayTotals, entryMacros, num } from '../lib/calc.js';
 import { addDays, relativeDay, today } from '../lib/dates.js';
 import TopBar from '../components/TopBar.jsx';
-import { Button, Card, EmptyState, Field, IconButton, NumInput, ProgressBar, Sheet, Stepper, fmt, useToast } from '../components/ui.jsx';
+import { Button, Card, EmptyState, Field, IconButton, NumInput, ProgressBar, Sheet, Stepper, fmt, useToast, useToday } from '../components/ui.jsx';
 
 export function MacroBars({ totals, settings, compact }) {
   const s = settings;
@@ -43,7 +43,10 @@ const macroLine = (m) => {
 export default function Food() {
   const state = useStore();
   const toast = useToast();
-  const [date, setDate] = useState(today());
+  const currentDay = useToday();
+  const [date, setDate] = useState(currentDay);
+  // Jump to the new day if the app was left open past midnight.
+  useEffect(() => setDate(currentDay), [currentDay]);
   const [sheet, setSheet] = useState(null); // { mode: 'log' } | { mode: 'food', food }
   const [editingFoods, setEditingFoods] = useState(false);
   const foods = useSortedFoods(state);

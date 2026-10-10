@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import { House, Dumbbell, HeartPulse, Utensils, Scale, ChartLine, Play } from 'lucide-react';
+import { Component, useEffect } from 'react';
+import { House, Dumbbell, HeartPulse, Utensils, Scale, ChartLine, Play, TriangleAlert } from 'lucide-react';
 import { useRoute, navigate } from './lib/router.js';
-import { useStore } from './lib/store.js';
+import { useStore, lastSaveFailed } from './lib/store.js';
 import Dashboard from './pages/Dashboard.jsx';
 import Lift from './pages/Lift.jsx';
 import Cardio from './pages/Cardio.jsx';
@@ -18,6 +18,33 @@ const TABS = [
   { path: '/weight', label: 'Weight', Icon: Scale },
   { path: '/progress', label: 'Charts', Icon: ChartLine },
 ];
+
+/** If a screen crashes, show a way out instead of a blank page. Your data is untouched. */
+class ErrorBoundary extends Component {
+  state = { error: null };
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  componentDidUpdate(prev) {
+    if (prev.route !== this.props.route && this.state.error) this.setState({ error: null });
+  }
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <div className="page">
+        <div className="card stack">
+          <h2>Something went wrong on this screen</h2>
+          <p className="muted small" style={{ margin: 0 }}>
+            Your data is still saved. Try going back home. If it keeps happening, export a backup from Settings.
+          </p>
+          <button type="button" className="btn btn-primary" onClick={() => navigate('/')}>
+            Go home
+          </button>
+        </div>
+      </div>
+    );
+  }
+}
 
 export default function App() {
   const route = useRoute();
@@ -61,8 +88,19 @@ export default function App() {
   const showResume = draft && !loggerVisible;
 
   return (
-    <div className="app">
-      <main>{page}</main>
+    <div className={`app ${showResume ? 'has-pill' : ''}`}>
+      {lastSaveFailed() && (
+        <button type="button" className="save-error" onClick={() => navigate('/settings')}>
+          <TriangleAlert size={18} />
+          <span>
+            <strong>Couldn&apos;t save.</strong> Browser storage is full or blocked, so new entries may be lost when you close the app.
+            Tap to export a backup.
+          </span>
+        </button>
+      )}
+      <main>
+        <ErrorBoundary route={pathname}>{page}</ErrorBoundary>
+      </main>
       {showResume && (
         <button type="button" className="resume-pill" onClick={() => navigate('/lift')}>
           <Play size={16} fill="currentColor" /> Resume {draft.editingId ? 'editing' : draft.name}

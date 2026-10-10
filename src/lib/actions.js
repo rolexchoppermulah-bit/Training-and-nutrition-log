@@ -110,12 +110,14 @@ export function deleteWorkout(id) {
   update('workouts', (list) => list.filter((w) => w.id !== id));
 }
 
-/** History to compare the draft against (excludes the workout being edited and anything after it). */
+/**
+ * History to compare the draft against: only workouts that came before it.
+ * Matters when editing an old workout or back-dating a new one.
+ */
 export function draftHistory(state) {
   const d = state.draft;
-  if (!d?.editingId) return state.workouts;
-  const original = state.workouts.find((w) => w.id === d.editingId);
-  return workoutsBefore(state.workouts, original || { id: d.editingId, date: d.date, startedAt: d.startedAt });
+  if (!d) return state.workouts;
+  return workoutsBefore(state.workouts, { id: d.editingId || d.id, date: d.date, startedAt: d.startedAt });
 }
 
 // ---------- Templates ----------

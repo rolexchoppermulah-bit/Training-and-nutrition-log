@@ -174,21 +174,29 @@ function PRList({ state }) {
             key={b.name}
             type="button"
             className="list-item tappable"
-            onClick={() => navigate(`/progress?ex=${encodeURIComponent(b.name)}`)}
+            onClick={() => b.e1rmSet && navigate(`/progress?ex=${encodeURIComponent(b.name)}`)}
           >
             <div className="grow">
               <div className="list-title">{b.name}</div>
-              <div className="list-sub tabular">
-                Est. 1RM <strong style={{ color: 'var(--text)' }}>{fmt(b.e1rm)}</strong> ({fmt(b.e1rmSet.weight, 1)}×{b.e1rmSet.reps},{' '}
-                {formatDate(b.e1rmSet.date)})
-              </div>
-              <div className="list-sub tabular">
-                Heaviest <strong style={{ color: 'var(--text)' }}>{fmt(b.maxWeight, 1)} lb</strong> ×{b.maxWeightSet.reps} (
-                {formatDate(b.maxWeightSet.date)})
-              </div>
+              {b.e1rmSet ? (
+                <>
+                  <div className="list-sub tabular">
+                    Est. 1RM <strong style={{ color: 'var(--text)' }}>{fmt(b.e1rm)}</strong> ({fmt(b.e1rmSet.weight, 1)}×{b.e1rmSet.reps},{' '}
+                    {formatDate(b.e1rmSet.date)})
+                  </div>
+                  <div className="list-sub tabular">
+                    Heaviest <strong style={{ color: 'var(--text)' }}>{fmt(b.maxWeight, 1)} lb</strong> ×{b.maxWeightSet.reps} (
+                    {formatDate(b.maxWeightSet.date)})
+                  </div>
+                </>
+              ) : (
+                <div className="list-sub tabular">
+                  Bodyweight · best <strong style={{ color: 'var(--text)' }}>{b.maxReps} reps</strong>
+                </div>
+              )}
             </div>
             <span className="badge">{b.muscle}</span>
-            <ChartLine size={18} className="faint" />
+            {b.e1rmSet && <ChartLine size={18} className="faint" />}
           </button>
         ))}
       </div>

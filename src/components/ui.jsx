@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { X, Minus, Plus } from 'lucide-react';
+import { today } from '../lib/dates.js';
 
 export const fmt = (n, digits = 0) =>
   Number.isFinite(n) ? n.toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: 0 }) : '—';
@@ -44,7 +45,7 @@ export function NumInput({ value, onChange, className = '', selectOnFocus = true
       inputMode="decimal"
       autoComplete="off"
       value={value ?? ''}
-      onChange={(e) => onChange(e.target.value.replace(/[^0-9.]/g, ''))}
+      onChange={(e) => onChange(e.target.value.replace(',', '.').replace(/[^0-9.]/g, ''))}
       onFocus={selectOnFocus ? (e) => e.target.select() : undefined}
       {...rest}
     />
@@ -152,18 +153,22 @@ export function EmptyState({ icon, title, children }) {
 /** Bottom sheet modal (slides up from the bottom on phones). */
 export function Sheet({ open, onClose, title, children, footer }) {
   const panel = useRef(null);
+  // Parents re-render often (e.g. the workout timer ticks every second), so
+  // keep the latest onClose in a ref instead of re-running the effect.
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
     if (!open) return undefined;
-    const onKey = (e) => e.key === 'Escape' && onClose();
+    const onKey = (e) => e.key === 'Escape' && closeRef.current();
     document.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    panel.current?.focus();
+    if (!panel.current?.contains(document.activeElement)) panel.current?.focus();
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prev;
     };
-  }, [open, onClose]);
+  }, [open]);
   if (!open) return null;
   return (
     <div className="sheet-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
@@ -225,4 +230,24 @@ export function useNow(intervalMs = 1000) {
     return () => clearInterval(id);
   }, [intervalMs]);
   return now;
+}
+
+/**
+ * Today's date that stays correct if the app is left open past midnight
+ * (re-checks every minute and whenever the app comes back to the foreground).
+ */
+export function useToday() {
+  const [d, setD] = useState(today);
+  useEffect(() => {
+    const check = () => setD(today());
+    const id = setInterval(check, 60000);
+    document.addEventListener('visibilitychange', check);
+    window.addEventListener('focus', check);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', check);
+      window.removeEventListener('focus', check);
+    };
+  }, []);
+  return d;
 }

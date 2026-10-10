@@ -84,6 +84,20 @@ describe('PRs', () => {
     expect(prSets.get('w3:0:0')).toEqual({ e1rm: false, weight: true });
   });
 
+  it('does not flag a PR when an exercise appears twice in its first session', () => {
+    const { prSets } = computePRs([workout('w1', '2026-01-01', [bench([100, 5]), bench([110, 5])])]);
+    expect(prSets.size).toBe(0);
+  });
+
+  it('handles bodyweight exercises logged at 0 lb', () => {
+    const pullup = (reps) => ({ name: 'Pull-up', muscle: 'Back', sets: [{ weight: 0, reps }] });
+    const { bests, prSets } = computePRs([workout('a', '2026-01-01', [pullup(8)]), workout('b', '2026-01-03', [pullup(10)])]);
+    const b = bests.get('pull-up');
+    expect(b.e1rmSet).toBeNull();
+    expect(b.maxReps).toBe(10);
+    expect(prSets.size).toBe(0);
+  });
+
   it('matches exercises by name regardless of case/spacing', () => {
     const { bests } = computePRs([...history, workout('w4', '2026-01-10', [{ ...bench([150, 1]), name: ' bench  press' }])]);
     expect(bests.get('bench press').maxWeight).toBe(150);

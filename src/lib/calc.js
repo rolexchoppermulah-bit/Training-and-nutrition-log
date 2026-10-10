@@ -61,7 +61,8 @@ export function overloadSuggestion(sets, plan) {
 /**
  * Walk through history in order and record the best lifts per exercise.
  * Returns:
- *   bests:  Map(normalized name -> { name, muscle, e1rm, e1rmSet, maxWeight, maxWeightSet, sessions, lastDate })
+ *   bests:  Map(normalized name -> { name, muscle, e1rm, e1rmSet, maxWeight, maxWeightSet, maxReps, sessions, lastDate })
+ *           (e1rmSet / maxWeightSet stay null for bodyweight-only exercises logged at 0 lb)
  *   prSets: Map("workoutId:exerciseIndex:setIndex" -> { e1rm: bool, weight: bool })
  * The first session of an exercise sets a baseline and isn't flagged as a PR.
  */
@@ -73,11 +74,12 @@ export function computePRs(workouts) {
       if (!ex.sets?.some((s) => num(s.reps) > 0)) return;
       const key = normName(ex.name);
       let b = bests.get(key);
-      const hasBaseline = !!b;
       if (!b) {
-        b = { name: ex.name, muscle: ex.muscle, e1rm: 0, e1rmSet: null, maxWeight: 0, maxWeightSet: null, sessions: 0 };
+        b = { name: ex.name, muscle: ex.muscle, e1rm: 0, e1rmSet: null, maxWeight: 0, maxWeightSet: null, maxReps: 0, sessions: 0, firstWorkoutId: w.id };
         bests.set(key, b);
       }
+      // Only sessions after the very first one can set a PR.
+      const hasBaseline = b.firstWorkoutId !== w.id;
       ex.sets.forEach((s, si) => {
         const reps = num(s.reps);
         if (reps <= 0) return;
@@ -85,6 +87,7 @@ export function computePRs(workouts) {
         const est = e1rm(weight, reps);
         const isE1rm = est > b.e1rm + 1e-9;
         const isWeight = weight > b.maxWeight + 1e-9;
+        b.maxReps = Math.max(b.maxReps, reps);
         if (hasBaseline && (isE1rm || isWeight)) prSets.set(`${w.id}:${ei}:${si}`, { e1rm: isE1rm, weight: isWeight });
         if (isE1rm) {
           b.e1rm = est;

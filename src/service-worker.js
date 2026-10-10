@@ -2,7 +2,8 @@
 // fills in VERSION and ASSETS and writes the result to dist/sw.js.
 //
 // - Pages (navigations): try the network first so you always get the latest
-//   version, fall back to the saved copy when offline.
+//   version, but if it's offline or takes more than 3 seconds (weak gym
+//   signal), open the saved copy instead.
 // - Everything else (scripts, styles, icons): serve the saved copy, since
 //   their file names change whenever their content does.
 
@@ -12,7 +13,8 @@ const CACHE = `lift-log-${VERSION}`;
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)));
+  // cache: 'reload' skips the browser's HTTP cache so we never save a stale copy.
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS.map((url) => new Request(url, { cache: 'reload' })))));
 });
 
 self.addEventListener('activate', (event) => {
@@ -29,16 +31,20 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
 
   if (req.mode === 'navigate') {
+    const network = fetch(req).then((res) => {
+      if (res.ok) {
+        const copy = res.clone();
+        return caches.open(CACHE).then((cache) => cache.put('./index.html', copy)).then(() => res);
+      }
+      return res;
+    });
+    event.waitUntil(network.catch(() => {})); // keep refreshing the saved copy in the background
     event.respondWith(
-      fetch(req)
-        .then((res) => {
-          if (res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE).then((cache) => cache.put('./index.html', copy));
-          }
-          return res;
-        })
-        .catch(() => caches.match('./index.html')),
+      caches.match('./index.html').then((cached) => {
+        if (!cached) return network;
+        const slow = new Promise((resolve) => setTimeout(() => resolve(cached), 3000));
+        return Promise.race([network, slow]).catch(() => cached);
+      }),
     );
     return;
   }

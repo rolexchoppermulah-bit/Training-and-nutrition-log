@@ -40,13 +40,14 @@ export default function Progress({ params }) {
 
 function StrengthCard({ state, initial }) {
   const { bests } = useMemo(() => computePRs(state.workouts), [state.workouts]);
-  const options = useMemo(() => [...bests.values()], [bests]);
+  const options = useMemo(() => [...bests.values()].filter((b) => b.e1rm > 0), [bests]);
   const defaultName = useMemo(() => {
-    if (initial && bests.has(normName(initial))) return bests.get(normName(initial)).name;
+    const fromLink = initial && bests.get(normName(initial));
+    if (fromLink?.e1rm > 0) return fromLink.name;
     return [...options].sort((a, b) => b.sessions - a.sessions)[0]?.name;
   }, [initial, bests, options]);
   const [picked, setPicked] = useState(null);
-  const name = picked && bests.has(normName(picked)) ? picked : defaultName;
+  const name = picked && bests.get(normName(picked))?.e1rm > 0 ? picked : defaultName;
   const sessions = useMemo(() => (name ? exerciseSessions(state.workouts, name) : []), [state.workouts, name]);
   const best = name ? bests.get(normName(name)) : null;
 
@@ -54,6 +55,16 @@ function StrengthCard({ state, initial }) {
     (g) => g.items.length,
   );
   const change = sessions.length > 1 ? sessions[sessions.length - 1].e1rm - sessions[0].e1rm : null;
+
+  if (!name) {
+    return (
+      <Card title="Estimated 1-rep max">
+        <p className="small muted" style={{ margin: 0 }}>
+          Log a weighted exercise to see its strength chart here.
+        </p>
+      </Card>
+    );
+  }
 
   return (
     <Card title="Estimated 1-rep max">

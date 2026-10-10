@@ -24,7 +24,7 @@ export default function WorkoutLogger({ onFinished }) {
   const [invalid, setInvalid] = useState(null);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const history = useMemo(() => draftHistory(state), [state.workouts, draft.editingId]);
+  const history = useMemo(() => draftHistory(state), [state.workouts, draft.editingId, draft.date]);
   const { bests } = useMemo(() => computePRs(history), [history]);
   const live = useMemo(() => livePRs(history, draft), [history, draft]);
   const knownNames = useMemo(() => {
@@ -42,7 +42,15 @@ export default function WorkoutLogger({ onFinished }) {
   });
 
   const setField = (ei, si, field, value) =>
-    updateDraft((d) => mapSet(d, ei, si, (s) => ({ ...s, [field]: value, ...(field === 'weight' ? { touched: true } : {}) })));
+    updateDraft((d) =>
+      mapSet(d, ei, si, (s) => {
+        const next = { ...s, [field]: value, ...(field === 'weight' ? { touched: true } : {}) };
+        // A ticked set that no longer has a weight and reps goes back to unticked,
+        // so it can't be saved half-empty (and the finish warning counts it).
+        if (next.done && (next.weight === '' || !(Number(next.reps) > 0))) next.done = false;
+        return next;
+      }),
+    );
 
   const flagInvalid = (id) => {
     setInvalid(id);
@@ -111,6 +119,10 @@ export default function WorkoutLogger({ onFinished }) {
     const left = all.length - done;
     if (left && !window.confirm(`${left} set${left > 1 ? 's' : ''} not ticked off. Unticked sets won't be saved. Finish anyway?`)) return;
     const saved = finishDraft();
+    if (!saved) {
+      toast('Tick off at least one set with weight and reps');
+      return;
+    }
     onFinished(saved, editing);
   };
 

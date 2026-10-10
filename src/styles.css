@@ -141,6 +141,23 @@ h3 {
   padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);
 }
 
+.app.has-pill {
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 72px);
+}
+
+.save-error {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  width: 100%;
+  border: none;
+  text-align: left;
+  padding: calc(env(safe-area-inset-top) + 10px) 16px 10px;
+  background: var(--danger-soft);
+  color: #fecaca;
+  font-size: 14px;
+}
+
 .topbar {
   position: sticky;
   top: 0;
